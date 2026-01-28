@@ -1,103 +1,294 @@
-# Projeto Terraform AWS – EC2 com Docker e Nginx
+# Projeto DevOps – Provisionamento AWS com Terraform, Ansible, Docker e Nginx
 
-## Visão geral
+##  Visão Geral
 
-Este projeto tem como objetivo demonstrar o uso do Terraform para provisionamento de infraestrutura na AWS, criando um ambiente funcional e reproduzível que inclui rede, segurança, computação e execução de uma aplicação containerizada.
+Este projeto demonstra a construção de uma infraestrutura completa na AWS utilizando **Infraestrutura como Código (IaC)** e automação de configuração, seguindo práticas comuns em ambientes DevOps e Cloud.
 
-O resultado final é uma instância EC2 acessível via SSH, executando Docker com Nginx, disponível publicamente via HTTP.
+O ambiente provisionado cria uma VPC dedicada, configura rede, segurança e computação, sobe uma instância EC2, instala Docker automaticamente e executa uma aplicação Nginx acessível publicamente via HTTP.
 
-O projeto foi desenvolvido com foco em Infraestrutura como Código (IaC), clareza arquitetural e boas práticas para ambientes de estudo.
+**Objetivo:** Estudo, consolidação de conceitos e portfólio, demonstrando domínio prático dos fundamentos de Cloud, redes, containers e automação.
 
-## Tecnologias utilizadas
+---
 
-Terraform  
-AWS (VPC, EC2, Security Group, Key Pair)  
-AWS CLI  
-Docker  
-Nginx  
-Linux (Amazon Linux 2) e Linux PopOs
-SSH  
+## Tecnologias Utilizadas
 
-## AWS CLI
+### Infraestrutura e Automação
+- **Terraform** – Provisionamento de infraestrutura (IaC)
+- **Ansible** – Automação de configuração
+- **AWS CLI** – Autenticação e integração local
 
-O AWS CLI foi configurado previamente para autenticar a conta AWS localmente e permitir que o Terraform se comunique com a AWS sem necessidade de credenciais no código.
+### AWS Services
+- **VPC** – Rede virtual privada
+- **Subnet** – Sub-rede pública
+- **Internet Gateway** – Conectividade externa
+- **Route Table** – Tabela de rotas
+- **Security Group** – Firewall virtual
+- **EC2** – Instância de computação
+- **Key Pair** – Autenticação SSH
 
-Após a execução do comando aws configure, o Terraform passou a utilizar automaticamente as credenciais configuradas.
+### Containers e Aplicação
+- **Docker** – Execução de containers
+- **Nginx** – Aplicação web de demonstração
 
-## Terraform e Infraestrutura como Código
+### Sistema Operacional
+- **Amazon Linux 2** (EC2)
+- **Pop!_OS** (máquina local)
 
-Toda a infraestrutura foi criada utilizando Terraform, permitindo versionamento e fácil destruição dos recursos.
+### Outros
+- **SSH** – Acesso remoto seguro
+- **Git & GitHub** – Versionamento de código
 
-Fluxo utilizado:
-terraform init  
+---
+
+##  Arquitetura do Projeto
+
+```
+Internet
+   |
+   | (HTTP / SSH)
+   v
++----------------------+
+|   Security Group     |
+|  - Port 22 (SSH)     |
+|  - Port 80 (HTTP)    |
++----------+-----------+
+           |
+           v
++----------------------+
+|    EC2 Instance      |
+|  Amazon Linux 2      |
+|  Docker Engine       |
+|  Nginx Container     |
++----------+-----------+
+           |
+           v
++----------------------+
+|   Public Subnet      |
+|  10.0.1.0/24         |
++----------+-----------+
+           |
+           v
++----------------------+
+|        VPC           |
+|  10.0.0.0/16         |
++----------------------+
+```
+
+---
+
+##  Estrutura de Pastas
+
+```
+.
+├── provider.tf        # Configuração do provider AWS
+├── network.tf         # VPC, Subnet, IGW e Route Table
+├── security.tf        # Security Groups
+├── compute.tf         # EC2 e Key Pair
+├── outputs.tf         # IP público da EC2
+├── ansible/
+│   ├── inventory.ini  # Inventário com IP da EC2
+│   ├── playbook.yml   # Playbook principal
+│   └── roles/
+│       ├── docker/    # Role para instalação do Docker
+│       └── nginx/     # Role para deployment do Nginx
+└── README.md
+```
+
+---
+
+## Como Usar
+
+### Pré-requisitos
+
+- AWS Account ativa
+- AWS CLI configurado
+- Terraform instalado (>= 1.0)
+- Ansible instalado (>= 2.9)
+- Git instalado
+
+### 1. Configurar AWS CLI
+
+Configure suas credenciais AWS localmente:
+
+```bash
+aws configure
+```
+
+Isso permite que o Terraform se autentique automaticamente sem expor credenciais no código.
+
+### 2. Provisionar Infraestrutura com Terraform
+
+```bash
+# Inicializar o Terraform
+terraform init
+
+# Formatar código (opcional)
 terraform fmt
-terraform plan  
-terraform apply  
-terraform destroy  
 
-O uso do terraform plan antes do apply foi essencial para validar as mudanças antes de aplicá-las.
+# Planejar as mudanças
+terraform plan
 
-## Arquitetura de Rede (VPC e Subnet)
+# Aplicar a infraestrutura
+terraform apply
+```
 
-Foi criada uma VPC dedicada, isolando completamente os recursos do projeto.
+O comando `terraform plan` mostra exatamente o que será criado antes de aplicar as mudanças.
 
-Dentro da VPC:
-- Subnet pública
-- Internet Gateway
-- Route Table com rota para a internet
+### 3. Configurar com Ansible
 
-Essa configuração permitiu que a EC2 tivesse IP público e acesso externo.
+Após o provisionamento, configure a instância:
 
-## Key Pair e acesso SSH
+```bash
+cd ansible
+ansible-playbook -i inventory.ini playbook.yml
+```
 
-Uma Key Pair foi criada via Terraform para permitir acesso SSH à EC2.
+### 4. Acessar a Aplicação
 
-Durante o desenvolvimento, ocorreu um problema de autenticação devido ao uso incorreto do usuário SSH. A AMI utilizada foi Amazon Linux 2, cujo usuário padrão é ec2-user, e não ubuntu.
+```bash
+# Obter o IP público (output do Terraform)
+terraform output
 
-Após a correção do usuário, o acesso SSH funcionou corretamente.
+# Acessar via SSH
+ssh -i terraform-key.pem ec2-user@<IP_PUBLICO>
 
-## Security Group
+# Acessar via navegador
+http://<IP_PUBLICO>
+```
 
-Foi criado um Security Group com as seguintes regras:
-- Porta 22 para SSH
-- Porta 80 para HTTP
-- Saída liberada para qualquer destino
+### 5. Destruir Recursos
 
-O Security Group atuou como firewall virtual, garantindo acesso controlado à instância.
+Quando finalizar, destrua todos os recursos para evitar custos:
 
-## EC2 (Compute)
+```bash
+terraform destroy
+```
 
-Foi criada uma instância EC2 t3.micro associada à VPC, subnet pública, Security Group e Key Pair.
+---
 
-A EC2 é utilizada como host para execução de containers Docker.
+##  Componentes Detalhados
 
-## Docker
+### VPC e Networking
 
-O Docker foi instalado automaticamente via user_data durante o boot da EC2, utilizando os comandos corretos para Amazon Linux 2.
+**VPC (Virtual Private Cloud)**
+- CIDR: `10.0.0.0/16`
+- Isolamento completo dos recursos do projeto
+
+**Subnet Pública**
+- CIDR: `10.0.1.0/24`
+- Associada ao Internet Gateway
+
+**Internet Gateway**
+- Permite comunicação com a internet
+
+**Route Table**
+- Rota padrão: `0.0.0.0/0` → Internet Gateway
+
+### Security Group
+
+Funciona como um **firewall virtual** controlando o tráfego:
+
+**Ingress (Entrada)**
+| Porta | Protocolo | Origem |  | Descrição   |
+|-------|-----------|-----------|-------------|
+| 22    | TCP       | 0.0.0.0/0 | SSH access  |
+| 80    | TCP       | 0.0.0.0/0 | HTTP access |
+
+**Egress (Saída)**
+- Liberação total para todas as portas e destinos
+
+### EC2 Instance
+
+**Especificações:**
+- **Tipo:** t3.micro (free tier eligible)
+- **AMI:** Amazon Linux 2
+- **Usuário SSH:** `ec2-user`
+- **Key Pair:** Gerado via Terraform
+
+**User Data:**
+- Instalação automática do Docker durante o boot
+- Configuração inicial do sistema
+
+### Docker
+
+Instalado automaticamente via `user_data` do Terraform ou via Ansible.
+
+**Verificar instalação:**
+```bash
+docker --version
+docker ps
+```
+
+### Nginx Container
+
+Container Docker executando o servidor web Nginx.
+
+**Deploy manual:**
+```bash
+docker run -d -p 80:80 nginx
+```
+
+**Deploy via Ansible:**
+Automatizado através do playbook na role `nginx/`.
+
+---
+
+##  Troubleshooting
+
+### Erro: Permission denied (publickey)
+
+**Causa:** Tentativa de conexão com usuário incorreto
+
+**Solução:** Amazon Linux 2 usa o usuário `ec2-user`, não `ubuntu`
+
+```bash
+#  Incorreto
+ssh -i terraform-key.pem ubuntu@<IP>
+
+#  Correto
+ssh -i terraform-key.pem ec2-user@<IP>
+```
+
+### Erro: Connection timeout
+
+**Possíveis causas:**
+- Security Group não permite porta 22
+- Subnet não está associada ao Internet Gateway
+- Key Pair incorreta
+
+### Nginx não responde
+
+**Verificações:**
+1. Container está rodando? `docker ps`
+2. Security Group permite porta 80?
+3. Nginx está mapeado na porta correta? `-p 80:80`
+
+---
+
+##  Outputs do Terraform
+
+O arquivo `outputs.tf` exporta informações úteis:
+
+```hcl
+output "ec2_public_ip" {
+  description = "IP público da instância EC2"
+  value       = aws_instance.main.public_ip
+}
+```
+
+**Visualizar outputs:**
+```bash
+terraform output
+terraform output ec2_public_ip
+```
 
 
-## Nginx e aplicação
+##  Links Úteis
 
-Um container Nginx foi executado utilizando Docker para demonstrar uma aplicação web funcional.
-
-O Nginx foi escolhido por ser leve, simples e amplamente utilizado.
-
-## Acesso via HTTP
-
-Com a porta 80 liberada e o Nginx em execução, a aplicação ficou acessível via navegador utilizando o IP público da EC2.
-
-Esse passo validou toda a infraestrutura criada.
-
-## Output do Terraform
-
-Foi utilizado um output simples para exibir o IP público da EC2, facilitando acesso SSH e HTTP.
-
-## Versionamento no GitHub
-
-Todo o projeto foi versionado no GitHub, incluindo arquivos Terraform e este README.
-
-Arquivos de estado não devem ser versionados em projetos reais.
-
-## Considerações finais
-
+- [Documentação Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Documentação Ansible](https://docs.ansible.com/)
+- [Docker Hub - Nginx](https://hub.docker.com/_/nginx)
+- [AWS Free Tier](https://aws.amazon.com/free/)
+- [Linkedin ](https://www.linkedin.com/in/carlos-zamboni-546086266/)
+---
 

@@ -1,0 +1,32 @@
+- name: Atualizar pacotes do sistema
+  yum:
+    name: "*"
+    state: latest
+
+- name: Instalar Docker
+  yum:
+    name: docker
+    state: present
+
+- name: Iniciar e habilitar Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Adicionar ec2-user ao grupo docker
+  user:
+    name: ec2-user
+    groups: docker
+    append: yes
+- name: Instalar pip
+  yum:
+    name: python3-pip
+    state: present
+
+- name: Instalar dependências Python para Docker
+  pip:
+    name:
+      - docker
+      - requests
+

@@ -1,0 +1,6 @@
+- name: Configurar EC2
+  hosts: ec2
+  become: yes
+  roles:
+    - docker
+    - nginx
