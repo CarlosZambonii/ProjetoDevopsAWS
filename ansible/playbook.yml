@@ -1,7 +1,7 @@
 - name: Configurar EC2
   hosts: ec2
   become: true
-  gather_facts: true
+  gather_facts: false
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
