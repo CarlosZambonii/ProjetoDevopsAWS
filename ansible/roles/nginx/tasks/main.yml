@@ -1,5 +1,0 @@
-- name: Remover container nginx se existir
-  shell: docker rm -f nginx || true
-
-- name: Subir container nginx
-  shell: docker run -d --name nginx -p 80:80 nginx:latest
