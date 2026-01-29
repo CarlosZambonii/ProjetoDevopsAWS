@@ -25,12 +25,15 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/nginx-devops:latest
 
-    - name: Setup SSH
+    - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/key.pem
-        chmod 600 ~/.ssh/key.pem
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/terraform-key
+        chmod 600 ~/.ssh/terraform-key
+    - name: Disable SSH host key checking
+      run: |
+        echo -e "Host *\n  StrictHostKeyChecking no" >> ~/.ssh/config
+
 
     - name: Deploy with Ansible
       run: |
