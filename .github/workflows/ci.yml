@@ -28,3 +28,5 @@ jobs:
           context: ./app
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/nginx-devops:latest
+      - name: Debug tag
+        run: echo "${{ secrets.DOCKERHUB_USERNAME }}/nginx-devops:latest"
