@@ -1,0 +1,9 @@
+- name: Bootstrap Python
+  hosts: ec2
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Garantir Python3 instalado
+      raw: |
+        yum install -y python3 || true

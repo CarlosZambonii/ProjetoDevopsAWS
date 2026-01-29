@@ -38,4 +38,5 @@ jobs:
     - name: Deploy with Ansible
       run: |
         cd ansible
-        ansible-playbook -i inventory.ini playbook.yml
+        ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini bootstrap.yml
+        ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini playbook.yml
