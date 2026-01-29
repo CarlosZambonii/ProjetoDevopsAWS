@@ -1,17 +1,14 @@
-- name: Bootstrap Python
-  hosts: ec2
-  become: true
-  gather_facts: false
-  tasks:
-    - name: Garantir Python3 instalado
-      raw: |
-        sudo yum install -y python3
-      changed_when: false
-
 - name: Configurar EC2
   hosts: ec2
   become: true
+  gather_facts: false
   vars:
     ansible_python_interpreter: /usr/bin/python3
+
+  pre_tasks:
+    - name: Garantir Python3 instalado
+      raw: sudo yum install -y python3
+      changed_when: false
+
   roles:
     - docker
