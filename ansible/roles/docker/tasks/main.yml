@@ -1,5 +1,5 @@
 - name: Instalar Docker
-  package:
+  yum:
     name: docker
     state: present
 
@@ -15,8 +15,8 @@
     groups: docker
     append: yes
 
-- name: Instalar pip
-  package:
+- name: Instalar python3-pip
+  yum:
     name: python3-pip
     state: present
 
