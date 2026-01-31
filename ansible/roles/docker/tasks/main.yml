@@ -1,19 +1,26 @@
-- name: Atualizar sistema
-  raw: sudo yum update -y
-  changed_when: false
-
 - name: Instalar Docker
-  raw: sudo yum install -y docker
-  changed_when: false
+  package:
+    name: docker
+    state: present
 
 - name: Iniciar Docker
-  raw: sudo systemctl start docker
-  changed_when: false
-
-- name: Habilitar Docker no boot
-  raw: sudo systemctl enable docker
-  changed_when: false
+  service:
+    name: docker
+    state: started
+    enabled: true
 
 - name: Adicionar ec2-user ao grupo docker
-  raw: sudo usermod -aG docker ec2-user
-  changed_when: false
+  user:
+    name: ec2-user
+    groups: docker
+    append: yes
+
+- name: Instalar pip
+  package:
+    name: python3-pip
+    state: present
+
+- name: Instalar Docker SDK para Python
+  pip:
+    name: docker
+    executable: pip3
