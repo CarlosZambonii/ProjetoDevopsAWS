@@ -1,7 +1,9 @@
-- name: Configurar EC2
+- name: Bootstrap Python
   hosts: ec2
   become: true
   gather_facts: false
-  roles:
-    - docker
-    - deploy
+
+  tasks:
+    - name: Garantir Python3 e libselinux
+      raw: |
+        yum install -y python3 libselinux-python3
