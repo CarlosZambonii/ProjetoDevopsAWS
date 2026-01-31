@@ -1,3 +1,7 @@
+- name: Garantir Python e dependências básicas
+  raw: |
+    yum install -y python3 libselinux-python3
+
 - name: Instalar Docker
   yum:
     name: docker
