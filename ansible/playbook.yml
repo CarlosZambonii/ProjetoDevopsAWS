@@ -7,3 +7,12 @@
 
   roles:
     - docker
+    
+- name: Subir Nginx
+  docker_container:
+    name: nginx
+    image: caza6367/nginx-devops:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "80:80"
